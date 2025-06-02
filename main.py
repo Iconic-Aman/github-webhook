@@ -30,7 +30,7 @@ def github_webhook():
         "to_branch" : payload["ref"].split("/")[-1], 
         "timestamp" : datetime.now(IST)
         }
-        print(f'{doc["author"]} submitted a push request from to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
+        print(f'{doc["author"]} submitted a push request to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
         insert_into_mongodb(doc)
         return 'PUSH request event received', 200
         
