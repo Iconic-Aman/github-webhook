@@ -28,9 +28,9 @@ def github_webhook():
         "action": "PUSH",
         "from_branch": None,
         "to_branch" : payload["ref"].split("/")[-1], 
-        "timestamp" : datetime.now(IST).strftime('%d %B %Y - %I:%M %p UTC')
+        "timestamp" : datetime.now(IST)
         }
-        print(f'{doc["author"]} submitted a push request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"]}')
+        print(f'{doc["author"]} submitted a push request from to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
         insert_into_mongodb(doc)
         return 'PUSH request event received', 200
         
@@ -44,9 +44,9 @@ def github_webhook():
             "action": "PULL_REQUEST",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.now(IST).strftime('%d %B %Y - %I:%M %p UTC')
+            "timestamp" : datetime.now(IST)
             }
-            print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"]}')
+            print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
             insert_into_mongodb(doc)
             return 'Pull request event received', 200
         
@@ -58,9 +58,9 @@ def github_webhook():
             "action": "MERGE",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.now(IST).strftime('%d %B %Y - %I:%M %p UTC')
+            "timestamp" : datetime.now(IST)
             }
-            print(f'{doc["author"]} merged branch {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"]}')
+            print(f'{doc["author"]} merged branch {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
             insert_into_mongodb(doc)
             return 'Pull request merged event received', 200
         else:
@@ -69,6 +69,9 @@ def github_webhook():
         return jsonify({"status": "unhandled event"}), 200
     
 
+@app.route("/events", methods = ['GET'])
+def read_event():
+    collection.find
         
 if __name__ == '__main__':
     app.run(debug=True)
