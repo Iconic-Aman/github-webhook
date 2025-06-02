@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import pymongo
 from pymongo import MongoClient
-import datetime
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 
@@ -23,7 +23,7 @@ def github_webhook():
         "action": "PUSH",
         "from_branch": None,
         "to_branch" : payload["ref"].split("/")[-1], 
-        "timestamp" : datetime.utcnow().strftime('%d %B %Y - %I:%M %p UTC')
+        "timestamp" : datetime.now(timezone.utc).strftime('%d %B %Y - %I:%M %p UTC')
         }
         print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"]}')
         return 'PUSH request event received', 200
@@ -38,7 +38,7 @@ def github_webhook():
             "action": "PULL_REQUEST",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.utcnow().strftime('%d %B %Y - %I:%M %p UTC')
+            "timestamp" : datetime.now(timezone.utc).strftime('%d %B %Y - %I:%M %p UTC')
             }
             print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"]}')
             return 'Pull request event received', 200
@@ -51,7 +51,7 @@ def github_webhook():
             "action": "MERGE",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.utcnow().strftime('%d %B %Y - %I:%M %p UTC')
+            "timestamp" : datetime.now(timezone.utc).strftime('%d %B %Y - %I:%M %p UTC')
             }
             print(f'{doc["author"]} merged branch {doc["from_branch"]} to {doc["to_branch"]} on {timestamp}')
             return 'Pull request merged event received', 200
