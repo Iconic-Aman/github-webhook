@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pymongo
 from pymongo import MongoClient
 from datetime import datetime, timezone, timedelta
+
 IST = timezone(timedelta(hours=5, minutes=30))
 
 app = Flask(__name__)
+
+
+from flask_cors import CORS
+CORS(app)
 
 #setup mongodb
 client = MongoClient("mongodb://localhost:27017/")
@@ -71,10 +76,21 @@ def github_webhook():
     else:
         return jsonify({"status": "unhandled event"}), 200
     
+def serialize_event(event):
+    event["_id"] = str(event["_id"])  # ObjectId is not JSON serializable
+    if isinstance(event.get("timestamp"), datetime):
+        event["timestamp"] = event["timestamp"].strftime('%d %B %Y - %I:%M %p IST')
+    return event
 
 @app.route("/events", methods = ['GET'])
 def read_event():
-    collection.find
-        
+    cursor = collection.find({})
+    events = [serialize_event(doc) for doc in cursor]
+    return jsonify(events)   
+
+@app.route('/')
+def home():
+    return render_template('index.html') 
+    
 if __name__ == '__main__':
     app.run(debug=True)
