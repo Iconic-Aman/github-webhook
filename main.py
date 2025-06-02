@@ -28,9 +28,10 @@ def github_webhook():
         "action": "PUSH",
         "from_branch": None,
         "to_branch" : payload["ref"].split("/")[-1], 
-        "timestamp" : datetime.now(IST)
+        "timestamp" : datetime.now(IST), #for sorting the most recent one
+        "timestamp_str": datetime.now(IST).strftime('%d %B %Y - %I:%M %p IST') # for displaying in the mongodb
         }
-        print(f'{doc["author"]} submitted a push request to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
+        print(f'{doc["author"]} submitted a push request to {doc["to_branch"]} on {doc["timestamp_str"]}')
         insert_into_mongodb(doc)
         return 'PUSH request event received', 200
         
@@ -44,9 +45,10 @@ def github_webhook():
             "action": "PULL_REQUEST",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.now(IST)
+            "timestamp" : datetime.now(IST),
+            "timestamp_str": datetime.now(IST).strftime('%d %B %Y - %I:%M %p IST')
             }
-            print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
+            print(f'{doc["author"]} submitted a pull request from {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp_str"]}')
             insert_into_mongodb(doc)
             return 'Pull request event received', 200
         
@@ -58,9 +60,10 @@ def github_webhook():
             "action": "MERGE",
             "from_branch" : pr["head"]["ref"],
             "to_branch" : pr["base"]["ref"],
-            "timestamp" : datetime.now(IST)
+            "timestamp" : datetime.now(IST),
+            "timestamp_str": datetime.now(IST).strftime('%d %B %Y - %I:%M %p IST')
             }
-            print(f'{doc["author"]} merged branch {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp"].strftime('%d %B %Y - %I:%M %p UTC')}')
+            print(f'{doc["author"]} merged branch {doc["from_branch"]} to {doc["to_branch"]} on {doc["timestamp_str"]}')
             insert_into_mongodb(doc)
             return 'Pull request merged event received', 200
         else:
