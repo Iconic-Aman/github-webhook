@@ -76,17 +76,14 @@ def github_webhook():
     else:
         return jsonify({"status": "unhandled event"}), 200
     
-def serialize_event(event):
-    event["_id"] = str(event["_id"])  # ObjectId is not JSON serializable
-    if isinstance(event.get("timestamp"), datetime):
-        event["timestamp"] = event["timestamp"].strftime('%d %B %Y - %I:%M %p IST')
-    return event
 
 @app.route("/events", methods = ['GET'])
 def read_event():
-    cursor = collection.find({})
-    events = [serialize_event(doc) for doc in cursor]
-    return jsonify(events)   
+    data = list(collection.find({}).sort('timestamp', -1))
+    for item in data:
+        item["_id"] = str(item["_id"])
+        item["timestamp"] = item.get("timestamp_str", "")
+    return jsonify(data)   
 
 @app.route('/')
 def home():
