@@ -6,41 +6,72 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
     h2 { color: #333; }
+    button { margin-bottom: 20px; padding: 10px 20px; font-size: 1em; cursor: pointer; }
     .event { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
     .timestamp { color: gray; font-size: 0.9em; }
   </style>
 </head>
 <body>
   <h2>Recent GitHub Events</h2>
+  <button onclick="fetchEvents(true)">🔁 Refresh</button>
   <div id="event-list"></div>
 
-  <script>
-    async function fetchEvents() {
-      const res = await fetch('http://localhost:5000/events');
-      const data = await res.json();
-      const list = document.getElementById('event-list');
-      list.innerHTML = ''; // clear previous
+   <!-- Notification Sound -->
+  <audio id="notify-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1141-pristine.mp3" preload="auto"></audio>  
+    <script>
+    let previousEventIds = new Set();
+      async function fetchEvents(triggeredManually = false) {
+      try {
+        const res = await fetch('http://localhost:5000/events');
+        const data = await res.json();
+        const list = document.getElementById('event-list');
 
-      data.forEach(event => {
-        const div = document.createElement('div');
-        div.className = 'event';
-        let text = '';
+        // Detect new event
+        const currentIds = new Set(data.map(e => e.request_id));
+        const isFirstLoad = previousEventIds.size === 0;
+        let newEventDetected = false;
 
-        if (event.action === 'PUSH') {
-          text = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
-        } else if (event.action === 'PULL_REQUEST') {
-          text = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
-        } else if (event.action === 'MERGE') {
-          text = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+        data.forEach(event => {
+          if (!previousEventIds.has(event.request_id) && !isFirstLoad) {
+            newEventDetected = true;
+          }
+        });
+
+        list.innerHTML = ''; // clear previous list
+
+        data.forEach(event => {
+          const div = document.createElement('div');
+          div.className = 'event';
+          let text = '';
+
+          if (event.action === 'PUSH') {
+            text = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
+          } else if (event.action === 'PULL_REQUEST') {
+            text = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+          } else if (event.action === 'MERGE') {
+            text = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+          }
+
+          div.innerHTML = `<div>${text}</div><div class="timestamp">${event.timestamp}</div>`;
+          list.appendChild(div);
+        });
+
+        // Update set
+        previousEventIds = currentIds;
+
+        // Trigger alert and sound
+        if (newEventDetected) {
+          const sound = document.getElementById('notify-sound');
+          sound.play();
+          alert("🚨 New GitHub event received!");
         }
-
-        div.innerHTML = `<div>${text}</div><div class="timestamp">${event.timestamp}</div>`;
-        list.appendChild(div);
-      });
+      } catch (err) {
+        console.error("Error fetching events:", err);
+      }
     }
 
     fetchEvents();
     setInterval(fetchEvents, 5000); // every 15 seconds
-  </script>
+    </script>
 </body>
 </html>
