@@ -27,6 +27,10 @@ def github_webhook():
     payload = request.json
 
     if event_type == 'push':
+        commit_message = payload['head_commit']['message']
+        if 'Merge pull request' in commit_message:
+            print("skipping push event caused by merge")
+            return "Merge-triggered push event"
         doc = {
         "request_id": payload['head_commit']['id'],
         "author" : payload["pusher"]["name"],
