@@ -1,135 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>GitHub Webhook Events</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
-    h2 { color: #333; }
-    .event { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    .timestamp { color: gray; font-size: 0.9em; }
+    <meta charset="UTF-8">
+    <title>GitHub Webhook Events</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f9f9f9;
+        }
 
-    /* Refresh animation bar */
-    #refresh-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 5px;
-      width: 100%;
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      animation: refreshAnimation 5s linear infinite;
-      z-index: 9999;
-    }
+        h2 {
+            color: #333;
+        }
 
-    @keyframes refreshAnimation {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
+        .event {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
 
-    /* Toast notification styles */
-    #toast {
-      visibility: hidden;
-      min-width: 300px;
-      margin-left: -150px;
-      color: #fff;
-      text-align: center;
-      border-radius: 8px;
-      padding: 14px;
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      z-index: 10000;
-      font-size: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      opacity: 0;
-      transition: opacity 0.5s ease, top 0.5s ease;
-    }
+        .timestamp {
+            color: gray;
+            font-size: 0.9em;
+        }
 
-    #toast.show {
-      visibility: visible;
-      opacity: 1;
-      top: 40px;
-    }
+        /* Refresh animation bar */
+        #refresh-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            width: 100%;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            animation: refreshAnimation 5s linear infinite;
+            z-index: 9999;
+        }
 
-    /* Toast types */
-    .push { background-color: #007bff; }       /* Blue */
-    .merge { background-color: #28a745; }      /* Green */
-    .pr { background-color: #ff9800; }         /* Orange */
-  </style>
+        @keyframes refreshAnimation {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Toast notification styles */
+        #toast {
+            visibility: hidden;
+            min-width: 300px;
+            margin-left: -150px;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 14px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            z-index: 10000;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.5s ease, top 0.5s ease;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            top: 40px;
+        }
+
+        /* Toast types */
+        .push {
+            background-color: #007bff;
+        }
+
+        /* Blue */
+        .merge {
+            background-color: #28a745;
+        }
+
+        /* Green */
+        .pr {
+            background-color: #ff9800;
+        }
+
+        /* Orange */
+    </style>
 </head>
+
 <body>
-  <div id="refresh-bar"></div>
-  <div id="toast"></div>
+    <div id="refresh-bar"></div>
+    <div id="toast"></div>
 
-  <h2>Recent GitHub Events</h2>
-  <div id="event-list"></div>
+    <h2>Recent GitHub Events</h2>
+    <div id="event-list"></div>
 
-  <audio id="notify-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1141-pristine.mp3" preload="auto"></audio>
+    <audio id="notify-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1141-pristine.mp3"
+        preload="auto"></audio>
 
-  <script>
-    let previousEventIds = new Set();
+    <script>
+        let previousEventIds = new Set();
 
-    function showToast(message, type) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = `show ${type}`;
-      setTimeout(() => {
-        toast.className = toast.className.replace("show", "").trim();
-      }, 3000);
-    }
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `show ${type}`;
+            setTimeout(() => {
+                toast.className = toast.className.replace("show", "").trim();
+            }, 3000);
+        }
 
-    async function fetchEvents() {
-      try {
-        const res = await fetch('http://localhost:5000/events');
-        const data = await res.json();
-        const list = document.getElementById('event-list');
+        async function fetchEvents() {
+            try {
+                const res = await fetch('http://localhost:5000/events');
+                const data = await res.json();
+                const list = document.getElementById('event-list');
 
-        const currentIds = new Set(data.map(e => e.request_id));
-        const isFirstLoad = previousEventIds.size === 0;
+                const currentIds = new Set(data.map(e => e.request_id));
+                const isFirstLoad = previousEventIds.size === 0;
 
-        list.innerHTML = '';
+                list.innerHTML = '';
 
-        data.forEach(event => {
-          const div = document.createElement('div');
-          div.className = 'event';
+                data.forEach(event => {
+                    const div = document.createElement('div');
+                    div.className = 'event';
 
-          let text = '';
-          let toastMsg = '';
-          let toastType = '';
+                    let text = '';
+                    let toastMsg = '';
+                    let toastType = '';
 
-          if (event.action === 'PUSH') {
-            text = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
-            toastMsg = `🚀 ${event.author} pushed to ${event.to_branch}`;
-            toastType = 'push';
-          } else if (event.action === 'PULL_REQUEST') {
-            text = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
-            toastMsg = `📬 ${event.author} created PR: ${event.from_branch} → ${event.to_branch}`;
-            toastType = 'pr';
-          } else if (event.action === 'MERGE') {
-            text = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
-            toastMsg = `✅ ${event.author} merged ${event.from_branch} → ${event.to_branch}`;
-            toastType = 'merge';
-          }
+                    if (event.action === 'PUSH') {
+                        text = `${event.author} pushed to ${event.to_branch} on ${event.timestamp}`;
+                        toastMsg = `🚀 ${event.author} pushed to ${event.to_branch}`;
+                        toastType = 'push';
+                    } else if (event.action === 'PULL_REQUEST') {
+                        text = `${event.author} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+                        toastMsg = `📬 ${event.author} created PR: ${event.from_branch} → ${event.to_branch}`;
+                        toastType = 'pr';
+                    } else if (event.action === 'MERGE') {
+                        text = `${event.author} merged branch ${event.from_branch} to ${event.to_branch} on ${event.timestamp}`;
+                        toastMsg = `✅ ${event.author} merged ${event.from_branch} → ${event.to_branch}`;
+                        toastType = 'merge';
+                    }
 
-          div.innerHTML = `<div>${text}</div><div class="timestamp">${event.timestamp}</div>`;
-          list.appendChild(div);
+                    div.innerHTML = `<div>${text}</div><div class="timestamp">${event.timestamp}</div>`;
+                    list.appendChild(div);
 
-          // Trigger toast and sound only for new items
-          if (!previousEventIds.has(event.request_id) && !isFirstLoad) {
-            const sound = document.getElementById('notify-sound');
-            sound.play();
-            showToast(toastMsg, toastType);
-          }
-        });
+                    // Trigger toast and sound only for new items
+                    if (!previousEventIds.has(event.request_id) && !isFirstLoad) {
+                        const sound = document.getElementById('notify-sound');
+                        sound.play();
+                        showToast(toastMsg, toastType);
+                    }
+                });
 
-        previousEventIds = currentIds;
-      } catch (err) {
-        console.error("Error fetching events:", err);
-      }
-    }
+                previousEventIds = currentIds;
+            } catch (err) {
+                console.error("Error fetching events:", err);
+            }
+        }
 
-    fetchEvents();
-    setInterval(fetchEvents, 5000);
-  </script>
+        fetchEvents();
+        setInterval(fetchEvents, 5000);
+    </script>
 </body>
+
 </html>
